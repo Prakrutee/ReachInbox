@@ -1,19 +1,42 @@
 import axios from "axios";
 import type { Email, ScheduleResult, SlackStatus, User } from "../types";
 
-const BASE =
-  import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.PROD ? "https://nam-mentor-robust-title.trycloudflare.com" : "");
+export function getApiBaseUrl(): string {
+  const custom = localStorage.getItem("reachinbox_api_base");
+  if (custom && custom.trim()) {
+    return custom.trim().replace(/\/+$/, "");
+  }
+  return (
+    import.meta.env.VITE_API_BASE_URL ||
+    (import.meta.env.PROD ? "https://nam-mentor-robust-title.trycloudflare.com" : "")
+  );
+}
+
+export function setApiBaseUrl(url: string) {
+  if (!url || !url.trim()) {
+    localStorage.removeItem("reachinbox_api_base");
+  } else {
+    localStorage.setItem("reachinbox_api_base", url.trim().replace(/\/+$/, ""));
+  }
+  window.location.reload();
+}
 
 const api = axios.create({
-  baseURL: BASE,
+  baseURL: getApiBaseUrl(),
   withCredentials: true,
+});
+
+api.interceptors.request.use((config) => {
+  config.baseURL = getApiBaseUrl();
+  return config;
 });
 
 export const authApi = {
   me: () => api.get<User>("/api/auth/me").then((r) => r.data),
   logout: () => api.post("/api/auth/logout"),
-  googleLogin: () => { window.location.href = `${BASE}/auth/google`; },
+  googleLogin: () => {
+    window.location.href = `${getApiBaseUrl()}/auth/google`;
+  },
 };
 
 export const emailApi = {
@@ -28,7 +51,7 @@ export const emailApi = {
 
 export const slackApi = {
   status: () => api.get<SlackStatus>("/api/slack/status").then((r) => r.data),
-  connect: () => { window.location.href = `${BASE}/auth/slack`; },
+  connect: () => { window.location.href = `${getApiBaseUrl()}/auth/slack`; },
   disconnect: () => api.post("/api/slack/disconnect"),
 };
 

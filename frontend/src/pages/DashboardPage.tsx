@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { emailApi, authApi, slackApi } from "../services/api";
+import { emailApi, authApi, slackApi, healthApi, getApiBaseUrl, setApiBaseUrl } from "../services/api";
 import type { Email, User, SlackStatus } from "../types";
 import EmailTable from "../components/EmailTable";
 import ComposeModal from "../components/ComposeModal";
@@ -16,6 +16,9 @@ export default function DashboardPage({ user, setUser }: Props) {
   const [loading, setLoading] = useState(true);
   const [showCompose, setShowCompose] = useState(false);
   const [slack, setSlack] = useState<SlackStatus | null>(null);
+  const [health, setHealth] = useState<{ status?: string; db?: string; groq?: string } | null>(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [customApiInput, setCustomApiInput] = useState(getApiBaseUrl());
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -30,12 +33,27 @@ export default function DashboardPage({ user, setUser }: Props) {
     }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  const checkHealth = useCallback(async () => {
+    try {
+      const h = await healthApi.check();
+      setHealth(h as any);
+    } catch {
+      setHealth({ status: "offline" });
+    }
+  }, []);
 
   useEffect(() => {
-    const interval = setInterval(fetchData, 15000);
+    fetchData();
+    checkHealth();
+  }, [fetchData, checkHealth]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchData();
+      checkHealth();
+    }, 15000);
     return () => clearInterval(interval);
-  }, [fetchData]);
+  }, [fetchData, checkHealth]);
 
   useEffect(() => {
     slackApi.status().then(setSlack).catch(() => {});
@@ -81,14 +99,45 @@ export default function DashboardPage({ user, setUser }: Props) {
             </div>
             <span className="text-lg font-bold text-white">ReachInbox.ai</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Live API Health & Groq Status Badge */}
+            <button
+              id="api-status-btn"
+              onClick={() => setShowSettingsModal(true)}
+              className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border transition-all hover:scale-105 ${
+                health?.status === "ok"
+                  ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
+                  : health?.status === "offline"
+                  ? "bg-red-500/10 text-red-400 border-red-500/30"
+                  : "bg-amber-500/10 text-amber-300 border-amber-500/30"
+              }`}
+              title="Click to configure backend API endpoint"
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  health?.status === "ok" ? "bg-emerald-400 animate-pulse" : "bg-red-400"
+                }`}
+              />
+              <span>
+                {health?.status === "ok"
+                  ? `API Online ${health.groq === "active" ? "• Groq AI" : ""}`
+                  : "API Offline (Settings)"}
+              </span>
+            </button>
+
             {slack && (
-              <div className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border ${slack.connected ? "bg-green-500/10 text-green-400 border-green-500/30" : "bg-gray-800 text-gray-500 border-gray-700"}`}>
+              <div className={`hidden md:flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border ${slack.connected ? "bg-green-500/10 text-green-400 border-green-500/30" : "bg-gray-800 text-gray-500 border-gray-700"}`}>
                 <div className={`w-2 h-2 rounded-full ${slack.connected ? "bg-green-400 animate-pulse" : "bg-gray-600"}`} />
                 {slack.connected ? `Slack: ${slack.team_name}` : "Slack: Not connected"}
               </div>
             )}
-            <a href="/admin/queues" target="_blank" rel="noreferrer" className="text-xs font-medium text-gray-400 hover:text-brand-400 transition-colors">
+            <a
+              id="bull-board-link"
+              href={`${getApiBaseUrl()}/admin/queues`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-medium text-gray-400 hover:text-brand-400 transition-colors"
+            >
               Bull Board
             </a>
             <div className="flex items-center gap-3">
@@ -188,6 +237,82 @@ export default function DashboardPage({ user, setUser }: Props) {
           onClose={() => setShowCompose(false)}
           onScheduled={() => { fetchData(); }}
         />
+      )}
+
+      {showSettingsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="card w-full max-w-md border border-white/10 shadow-2xl animate-scale-up">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-4">
+              <h3 className="text-lg font-bold text-white">System & API Configuration</h3>
+              <button
+                onClick={() => setShowSettingsModal(false)}
+                className="text-gray-400 hover:text-white transition-colors text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div className="bg-gray-900/80 rounded-xl p-3 border border-white/5 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Backend API Status:</span>
+                  <span className={`font-semibold ${health?.status === "ok" ? "text-emerald-400" : "text-red-400"}`}>
+                    {health?.status === "ok" ? "ONLINE" : "OFFLINE"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Database:</span>
+                  <span className="text-gray-200 font-semibold">{health?.db || "unknown"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Groq AI Engine:</span>
+                  <span className={`font-semibold ${health?.groq === "active" ? "text-emerald-400" : "text-amber-400"}`}>
+                    {health?.groq === "active" ? "ACTIVE (gpt-oss-120b)" : "Not Configured"}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">
+                  Connected Backend API URL
+                </label>
+                <input
+                  type="url"
+                  value={customApiInput}
+                  onChange={(e) => setCustomApiInput(e.target.value)}
+                  placeholder="https://reachinbox-api.onrender.com or https://...trycloudflare.com"
+                  className="input-field text-sm w-full font-mono"
+                />
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Change this if deploying a new Render service or Cloudflare tunnel.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => {
+                  setApiBaseUrl("");
+                  setShowSettingsModal(false);
+                }}
+                className="btn-secondary text-xs py-2 px-3"
+              >
+                Reset Default
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setApiBaseUrl(customApiInput);
+                  setShowSettingsModal(false);
+                }}
+                className="btn-primary text-xs py-2 px-4"
+              >
+                Save & Apply
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

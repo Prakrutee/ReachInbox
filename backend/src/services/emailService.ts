@@ -126,9 +126,9 @@ export async function getScheduledEmails(): Promise<EmailRecord[]> {
       const res = await pool.query(
         "SELECT * FROM emails WHERE status = 'scheduled' ORDER BY scheduled_at ASC"
       );
-      if (res.rows.length > 0) return res.rows;
+      return res.rows;
     } catch (err) {
-      console.warn("getScheduledEmails fallback to memory");
+      console.warn("getScheduledEmails fallback to memory:", err);
     }
   }
   return inMemoryEmails.filter((e) => e.status === "scheduled");
@@ -140,9 +140,9 @@ export async function getSentEmails(): Promise<EmailRecord[]> {
       const res = await pool.query(
         "SELECT * FROM emails WHERE status IN ('sent','failed') ORDER BY sent_at DESC NULLS LAST"
       );
-      if (res.rows.length > 0) return res.rows;
+      return res.rows;
     } catch (err) {
-      console.warn("getSentEmails fallback to memory");
+      console.warn("getSentEmails fallback to memory:", err);
     }
   }
   return inMemoryEmails.filter((e) => e.status === "sent" || e.status === "failed");

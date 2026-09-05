@@ -83,8 +83,9 @@ router.post("/schedule", upload.single("file"), async (req, res) => {
         // Plain list
         allRecipients = content.split(/[\r\n,]+/).map((e: string) => e.trim()).filter(Boolean);
       }
-    } else if (req.body.recipients) {
-      const raw = Array.isArray(req.body.recipients) ? req.body.recipients : [req.body.recipients];
+    } else if (req.body.recipients || req.body.recipient) {
+      const field = req.body.recipients || req.body.recipient;
+      const raw = Array.isArray(field) ? field : [field];
       allRecipients = raw.flatMap((r: string) => r.split(",").map((e: string) => e.trim()));
     }
 

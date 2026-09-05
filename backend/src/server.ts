@@ -25,6 +25,9 @@ import "./middleware/passport";
 const app = express();
 const PORT = Number(process.env.PORT || 10000);
 
+// Trust proxy for secure cookies behind reverse proxies (Render, Cloudflare, etc.)
+app.set("trust proxy", 1);
+
 // Security
 app.use(
   helmet({
@@ -32,11 +35,25 @@ app.use(
   })
 );
 
-// CORS
-const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+// CORS: allow frontendUrl, GitHub Pages origin, and localhost
+const configuredFrontend = process.env.FRONTEND_URL || "";
 app.use(
   cors({
-    origin: frontendUrl,
+    origin: (origin, callback) => {
+      // allow requests with no origin (like mobile apps, curl, Bull Board internal)
+      if (!origin) return callback(null, true);
+      const isAllowed =
+        origin === configuredFrontend ||
+        origin.startsWith("https://prakrutee.github.io") ||
+        origin.startsWith("http://localhost:") ||
+        origin.startsWith("http://127.0.0.1:") ||
+        origin.endsWith(".trycloudflare.com") ||
+        origin.endsWith(".onrender.com");
+      if (isAllowed) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive in deployment to avoid blocking cross-origin UI
+    },
     credentials: true,
   })
 );
@@ -55,6 +72,7 @@ if (pool) {
   }
 }
 
+const isProd = process.env.NODE_ENV === "production";
 app.use(
   session({
     store: sessionStore,
@@ -62,7 +80,8 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     },

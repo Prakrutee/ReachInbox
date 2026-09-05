@@ -29,6 +29,8 @@ services:
       context: ./backend
     ports:
       - "10001:10000"
+    env_file:
+      - ./backend/.env
     environment:
       PORT: 10000
       NODE_ENV: production
@@ -49,6 +51,8 @@ services:
     build:
       context: ./backend
     command: npm run worker
+    env_file:
+      - ./backend/.env
     environment:
       NODE_ENV: production
       DATABASE_URL: postgres://reachinbox:reachinbox@db:5432/reachinbox
