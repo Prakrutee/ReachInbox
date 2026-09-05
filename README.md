@@ -3,7 +3,7 @@
 AI-powered email outreach platform with smart scheduling, rate limiting, and real-time analytics.
 
 ## Deployment Status
-- **Repository**: https://github.com/Prakrutee/ReachInbox (private)
+- **Repository**: https://github.com/Prakrutee/ReachInbox 
 - **Local API**: http://localhost:10001
 - **Local Bull Board**: http://localhost:10001/admin/queues
 - **Temporary API tunnel**: https://nam-mentor-robust-title.trycloudflare.com
