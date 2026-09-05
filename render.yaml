@@ -1,0 +1,126 @@
+databases:
+  - name: reachinbox-db
+    databaseName: reachinbox
+    user: reachinbox
+    plan: free
+
+services:
+  - type: redis
+    name: reachinbox-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+
+  - type: web
+    name: reachinbox-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: reachinbox-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: reachinbox-redis
+          type: redis
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALLBACK_URL
+        sync: false
+      - key: SLACK_CLIENT_ID
+        sync: false
+      - key: SLACK_CLIENT_SECRET
+        sync: false
+      - key: SLACK_REDIRECT_URI
+        sync: false
+      - key: ETHEREAL_HOST
+        value: smtp.ethereal.email
+      - key: ETHEREAL_PORT
+        value: "587"
+      - key: ETHEREAL_USER
+        sync: false
+      - key: ETHEREAL_PASSWORD
+        sync: false
+      - key: ELASTICSEARCH_URL
+        sync: false
+      - key: CONCURRENCY
+        value: "5"
+      - key: MIN_EMAIL_DELAY_MS
+        value: "2000"
+      - key: MAX_EMAILS_PER_HOUR
+        value: "20"
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+
+  - type: worker
+    name: reachinbox-worker
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run worker
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: reachinbox-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: reachinbox-redis
+          type: redis
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+      - key: ETHEREAL_HOST
+        value: smtp.ethereal.email
+      - key: ETHEREAL_PORT
+        value: "587"
+      - key: ETHEREAL_USER
+        sync: false
+      - key: ETHEREAL_PASSWORD
+        sync: false
+      - key: ELASTICSEARCH_URL
+        sync: false
+      - key: CONCURRENCY
+        value: "5"
+      - key: MIN_EMAIL_DELAY_MS
+        value: "2000"
+      - key: MAX_EMAILS_PER_HOUR
+        value: "20"
+      - key: SLACK_CLIENT_ID
+        sync: false
+      - key: SLACK_CLIENT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+
+  - type: web
+    name: reachinbox-frontend
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          name: reachinbox-api
+          type: web
+          property: host
