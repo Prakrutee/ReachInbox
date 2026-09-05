@@ -1,4 +1,4 @@
-# ReachInbox.ai 🚀
+# ReachInbox.ai
 
 > **AI-powered email outreach platform** — smart scheduling, Groq AI generation, BullMQ rate limiting, and real-time analytics.
 
@@ -7,7 +7,7 @@
 
 ---
 
-## 🌍 Live Deployment
+## Live Deployment
 
 | Component | URL |
 |---|---|
@@ -20,50 +20,50 @@
 
 ---
 
-## ✨ Features
+## Features
 
-- 🤖 **Groq AI Email Generation** — generate full email subjects + bodies using `openai/gpt-oss-120b` from a topic, tone, and audience
-- 📅 **BullMQ Delayed Job Scheduling** — no cron, no polling; jobs are delayed to the exact scheduled timestamp
-- 🛡️ **Per-Sender Rate Limiting** — Redis INCR enforces `MAX_EMAILS_PER_HOUR`; excess jobs are rescheduled to the next window, never dropped
-- 📬 **Zero-Config Email Delivery** — Ethereal SMTP credentials are auto-provisioned if not set; preview URLs logged per send
-- 📊 **Bull Board UI** — real-time queue dashboard showing waiting, delayed, active, completed, failed jobs
-- 🔍 **Elasticsearch Search** — optional full-text search on recipient/subject/body
-- 🔔 **Slack Notifications** — webhook alerts when rate limits are hit
-- 🔐 **Google OAuth** — optional; dashboard also supports instant demo-mode login
-- 💪 **Resilient Architecture** — in-memory fallback when Postgres/Redis not available; no crashes on missing env vars
-- 🔄 **Live API Status Indicator** — dashboard shows real-time backend health + Groq AI status; click to change the backend URL
+- **Groq AI Email Generation** — generate full email subjects + bodies using `openai/gpt-oss-120b` from a topic, tone, and audience
+- **BullMQ Delayed Job Scheduling** — no cron, no polling; jobs are delayed to the exact scheduled timestamp
+- **Per-Sender Rate Limiting** — Redis INCR enforces `MAX_EMAILS_PER_HOUR`; excess jobs are rescheduled to the next window, never dropped
+- **Zero-Config Email Delivery** — Ethereal SMTP credentials are auto-provisioned if not set; preview URLs logged per send
+- **Bull Board UI** — real-time queue dashboard showing waiting, delayed, active, completed, failed jobs
+- **Elasticsearch Search** — optional full-text search on recipient/subject/body
+- **Slack Notifications** — webhook alerts when rate limits are hit
+- **Google OAuth** — optional; dashboard also supports instant demo-mode login
+- **Resilient Architecture** — in-memory fallback when Postgres/Redis not available; no crashes on missing env vars
+- **Live API Status Indicator** — dashboard shows real-time backend health + Groq AI status; click to change the backend URL
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
   User Browser
-      │ React + Tailwind (GitHub Pages Static Site)
-      │ HTTPS REST API calls
-      ▼
-  ┌─────────────────────┐
-  │   Express.js API    │  ← port 10000 (Docker) / Render Web Service
-  │   + Bull Board UI   │
-  │   + Passport OAuth  │
-  └──────────┬──────────┘
-             │
-     ┌───────┴────────┐
-     ▼                ▼
-┌──────────┐    ┌──────────┐
-│ Postgres │    │  Redis   │  ← BullMQ job queue
-│ (emails, │    │  + Rate  │
-│  users,  │    │  Limits  │
-│ sessions)│    └────┬─────┘
-└──────────┘         │ BullMQ Delayed Jobs
-                      ▼
-             ┌──────────────────────┐
-             │   BullMQ Worker      │  ← Render Background Worker
-             │  - Sends via SMTP    │
-             │  - Rate limits Redis │
-             │  - ES indexing       │
-             │  - Slack alerts      │
-             └──────────────────────┘
+      | React + Tailwind (GitHub Pages Static Site)
+      | HTTPS REST API calls
+      v
+  +---------------------+
+  |   Express.js API    |  <- port 10000 (Docker) / Render Web Service
+  |   + Bull Board UI   |
+  |   + Passport OAuth  |
+  +----------+----------+
+             |
+     +-------+--------+
+     v                v
++----------+    +----------+
+| Postgres |    |  Redis   |  <- BullMQ job queue
+| (emails, |    |  + Rate  |
+|  users,  |    |  Limits  |
+| sessions)|    +----+-----+
++----------+         | BullMQ Delayed Jobs
+                      v
+             +----------------------+
+             |   BullMQ Worker      |  <- Render Background Worker
+             |  - Sends via SMTP    |
+             |  - Rate limits Redis |
+             |  - ES indexing       |
+             |  - Slack alerts      |
+             +----------------------+
 ```
 
 ### Key Design Decisions
@@ -78,7 +78,7 @@
 
 ---
 
-## 🚀 Quick Start — Docker (Recommended)
+## Quick Start — Docker (Recommended)
 
 ```bash
 # Clone
@@ -94,16 +94,16 @@ docker compose up -d --build
 
 # Verify
 curl http://localhost:10001/api/health
-# → {"status":"ok","db":"ok","groq":"active"}
+# -> {"status":"ok","db":"ok","groq":"active"}
 
 # Start frontend dev server
 cd frontend && npm install && npm run dev
-# → http://localhost:5173
+# -> http://localhost:5173
 ```
 
 ---
 
-## 🛠️ Manual Local Setup
+## Manual Local Setup
 
 ### Backend
 ```bash
@@ -125,10 +125,10 @@ npm run dev                   # Vite on :5173
 
 ---
 
-## ☁️ Render Deployment
+## Render Deployment
 
 1. Push code to GitHub
-2. In Render: **New → Blueprint** → connect `Prakrutee/ReachInbox`
+2. In Render: **New -> Blueprint** -> connect `Prakrutee/ReachInbox`
 3. Render reads `render.yaml` and auto-creates:
    - `reachinbox-db` — Postgres
    - `reachinbox-redis` — Redis
@@ -150,11 +150,11 @@ npm run dev                   # Vite on :5173
 | `ETHEREAL_USER` | *(optional — auto-provisioned)* |
 | `ETHEREAL_PASSWORD` | *(optional — auto-provisioned)* |
 
-5. After deploy, visit the frontend and click the **API status pill** → enter your Render API URL.
+5. After deploy, visit the frontend and click the **API status pill** -> enter your Render API URL.
 
 ---
 
-## 🔑 Environment Variables Reference
+## Environment Variables Reference
 
 ### Backend (`backend/.env`)
 
@@ -184,7 +184,7 @@ npm run dev                   # Vite on :5173
 
 ---
 
-## 📋 API Reference
+## API Reference
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -207,7 +207,7 @@ npm run dev                   # Vite on :5173
 
 ---
 
-## 📂 Monorepo Structure
+## Monorepo Structure
 
 ```
 ReachInbox/
@@ -246,7 +246,7 @@ ReachInbox/
 
 ---
 
-## 🔒 Security Notes
+## Security Notes
 
 - API keys are loaded from `backend/.env` via `env_file` in docker-compose — never hardcoded in source
 - CORS allows only known origins (GitHub Pages, localhost, Cloudflare, Render)
@@ -256,7 +256,7 @@ ReachInbox/
 
 ---
 
-## ⚠️ Known Limitations
+## Known Limitations
 
 - The Cloudflare tunnel URL changes each Docker restart; update the frontend settings accordingly
 - Render free tier services sleep after inactivity — first request after sleep is slow
@@ -266,6 +266,6 @@ ReachInbox/
 
 ---
 
-## 📜 License
+## License
 
 MIT
