@@ -9,6 +9,7 @@ services:
     name: reachinbox-redis
     plan: free
     maxmemoryPolicy: noeviction
+    ipAllowList: []
 
   - type: web
     name: reachinbox-api
