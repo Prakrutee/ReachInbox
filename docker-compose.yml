@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: reachinbox
+      POSTGRES_USER: reachinbox
+      POSTGRES_PASSWORD: reachinbox
+    volumes:
+      - reachinbox-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reachinbox -d reachinbox"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - reachinbox-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+    ports:
+      - "10001:10000"
+    environment:
+      PORT: 10000
+      NODE_ENV: production
+      DATABASE_URL: postgres://reachinbox:reachinbox@db:5432/reachinbox
+      REDIS_URL: redis://redis:6379
+      SESSION_SECRET: local-reachinbox-session-secret
+      FRONTEND_URL: https://prakrutee.github.io
+      ETHEREAL_HOST: smtp.ethereal.email
+      ETHEREAL_PORT: 587
+      GROQ_MODEL: openai/gpt-oss-120b
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./backend
+    command: npm run worker
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://reachinbox:reachinbox@db:5432/reachinbox
+      REDIS_URL: redis://redis:6379
+      ETHEREAL_HOST: smtp.ethereal.email
+      ETHEREAL_PORT: 587
+      GROQ_MODEL: openai/gpt-oss-120b
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  reachinbox-db:
+  reachinbox-redis:
