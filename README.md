@@ -15,29 +15,29 @@ API tunnel works only while Docker Desktop and the tunnel process are running.
 ## Architecture
 
 ```
-                    +---------------------+
-     User Browser --? React + Tailwind    �  (Render Static Site)
-                    +---------------------+
-                           � REST API
-                    +------?--------------+
-                    �  Express API         �  (Render Web Service)
-                    �  + Bull Board UI     �
-                    +----------------------+
-                       �          �
-              +--------?--+  +----?----------+
-              � Postgres  �  �   Redis        �
-              � (Render)  �  � (Render KV)    �
-              +-----------+  +----?----------+
-                       �          � BullMQ Jobs
-              +--------?---------------------+
-              �     BullMQ Worker Process     �  (Render Background Worker)
-              �   - Sends via Nodemailer      �
-              �   - Rate limits via Redis     �
-              �   - Indexes to Elasticsearch  �
-              +-------------------------------+
+            +---------------------+
+     User Browser --> React + Tailwind    (Static Site)
+            +---------------------+
+               | REST API
+            +------v--------------+
+            |  Express API        |  (Web Service)
+            |  + Bull Board UI    |
+            +---------------------+
+           |          |
+      +--------v--+  +----v----------+
+      | Postgres  |  |   Redis        |
+      | (Docker)  |  | (Docker)       |
+      +-----------+  +---------------+
+           |          | BullMQ Jobs
+      +--------v---------------------+
+      |     BullMQ Worker Process     |
+      |   - Sends via Nodemailer      |
+      |   - Rate limits via Redis     |
+      |   - Indexes to Elasticsearch  |
+      +-------------------------------+
 ```
 
-## No Cron � Scheduling uses BullMQ delayed jobs exclusively
+## No Cron - Scheduling uses BullMQ delayed jobs exclusively
 
 All email scheduling is implemented using BullMQ delayed jobs:
 - `emailQueue.add("send-email", data, { jobId: emailId, delay: scheduledAt - Date.now() })`
@@ -91,16 +91,16 @@ npm run dev             # Vite dev server on :5173
 ## Render Deploy Steps
 
 1. Push code to GitHub
-2. In Render dashboard: New ? Blueprint
+2. In Render dashboard: New -> Blueprint
 3. Connect your GitHub repo
 4. Render reads `render.yaml` and creates all services automatically:
-   - `reachinbox-db` � Postgres database
-   - `reachinbox-redis` � Redis Key Value store
-   - `reachinbox-api` � Express web service
-   - `reachinbox-worker` � BullMQ background worker
-   - `reachinbox-frontend` � React static site
+   - `reachinbox-db` - Postgres database
+   - `reachinbox-redis` - Redis Key Value store
+   - `reachinbox-api` - Express web service
+   - `reachinbox-worker` - BullMQ background worker
+   - `reachinbox-frontend` - React static site
 5. Set the following env vars in Render dashboard (sync: false vars):
-   - `FRONTEND_URL` ? your static site URL
+   - `FRONTEND_URL` -> your static site URL
    - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`
    - `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET`, `SLACK_REDIRECT_URI`
    - `ETHEREAL_USER`, `ETHEREAL_PASSWORD`
@@ -166,7 +166,7 @@ plans.
 
 ## Idempotency
 
-Status transitions: `scheduled ? processing ? sent | failed`
+Status transitions: `scheduled -> processing -> sent | failed`
 
 - Worker uses conditional update: `UPDATE emails SET status='processing' WHERE id=$1 AND status='scheduled'`
 - If another worker already claimed it (`rowCount === 0`), the current processor skips
@@ -185,7 +185,7 @@ Status transitions: `scheduled ? processing ? sent | failed`
 
 - Emails indexed after send success or failure
 - `GET /api/emails/search?q=` searches recipient/subject/body
-- ES failures are non-fatal � successful sends are never rolled back
+- ES failures are non-fatal - successful sends are never rolled back
 - If `ELASTICSEARCH_URL` is not set, search returns empty array
 
 ## Bull Board
@@ -195,8 +195,8 @@ Shows: waiting, delayed, active, completed, failed job counts.
 
 ## Trade-offs
 
-- Render free tier may sleep � first request after sleep is slow
-- Elasticsearch is optional � search falls back gracefully
+- Render free tier may sleep - first request after sleep is slow
+- Elasticsearch is optional - search falls back gracefully
 - Google/Slack OAuth require credentials that cannot be auto-generated
 - Bull Board is unauthenticated on free tier (add middleware for production)
 - Render Postgres free tier has storage limits
