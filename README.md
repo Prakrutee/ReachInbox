@@ -11,28 +11,28 @@ AI-powered email outreach platform with smart scheduling, rate limiting, and rea
 
 ```
                     +---------------------+
-     User Browser --? React + Tailwind    ¦  (Render Static Site)
+     User Browser --? React + Tailwind    ï¿½  (Render Static Site)
                     +---------------------+
-                           ¦ REST API
+                           ï¿½ REST API
                     +------?--------------+
-                    ¦  Express API         ¦  (Render Web Service)
-                    ¦  + Bull Board UI     ¦
+                    ï¿½  Express API         ï¿½  (Render Web Service)
+                    ï¿½  + Bull Board UI     ï¿½
                     +----------------------+
-                       ¦          ¦
+                       ï¿½          ï¿½
               +--------?--+  +----?----------+
-              ¦ Postgres  ¦  ¦   Redis        ¦
-              ¦ (Render)  ¦  ¦ (Render KV)    ¦
+              ï¿½ Postgres  ï¿½  ï¿½   Redis        ï¿½
+              ï¿½ (Render)  ï¿½  ï¿½ (Render KV)    ï¿½
               +-----------+  +----?----------+
-                       ¦          ¦ BullMQ Jobs
+                       ï¿½          ï¿½ BullMQ Jobs
               +--------?---------------------+
-              ¦     BullMQ Worker Process     ¦  (Render Background Worker)
-              ¦   - Sends via Nodemailer      ¦
-              ¦   - Rate limits via Redis     ¦
-              ¦   - Indexes to Elasticsearch  ¦
+              ï¿½     BullMQ Worker Process     ï¿½  (Render Background Worker)
+              ï¿½   - Sends via Nodemailer      ï¿½
+              ï¿½   - Rate limits via Redis     ï¿½
+              ï¿½   - Indexes to Elasticsearch  ï¿½
               +-------------------------------+
 ```
 
-## No Cron — Scheduling uses BullMQ delayed jobs exclusively
+## No Cron ï¿½ Scheduling uses BullMQ delayed jobs exclusively
 
 All email scheduling is implemented using BullMQ delayed jobs:
 - `emailQueue.add("send-email", data, { jobId: emailId, delay: scheduledAt - Date.now() })`
@@ -69,11 +69,11 @@ npm run dev             # Vite dev server on :5173
 2. In Render dashboard: New ? Blueprint
 3. Connect your GitHub repo
 4. Render reads `render.yaml` and creates all services automatically:
-   - `reachinbox-db` — Postgres database
-   - `reachinbox-redis` — Redis Key Value store
-   - `reachinbox-api` — Express web service
-   - `reachinbox-worker` — BullMQ background worker
-   - `reachinbox-frontend` — React static site
+   - `reachinbox-db` ï¿½ Postgres database
+   - `reachinbox-redis` ï¿½ Redis Key Value store
+   - `reachinbox-api` ï¿½ Express web service
+   - `reachinbox-worker` ï¿½ BullMQ background worker
+   - `reachinbox-frontend` ï¿½ React static site
 5. Set the following env vars in Render dashboard (sync: false vars):
    - `FRONTEND_URL` ? your static site URL
    - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`
@@ -154,7 +154,7 @@ Status transitions: `scheduled ? processing ? sent | failed`
 
 - Emails indexed after send success or failure
 - `GET /api/emails/search?q=` searches recipient/subject/body
-- ES failures are non-fatal — successful sends are never rolled back
+- ES failures are non-fatal ï¿½ successful sends are never rolled back
 - If `ELASTICSEARCH_URL` is not set, search returns empty array
 
 ## Bull Board
@@ -164,8 +164,8 @@ Shows: waiting, delayed, active, completed, failed job counts.
 
 ## Trade-offs
 
-- Render free tier may sleep — first request after sleep is slow
-- Elasticsearch is optional — search falls back gracefully
+- Render free tier may sleep ï¿½ first request after sleep is slow
+- Elasticsearch is optional ï¿½ search falls back gracefully
 - Google/Slack OAuth require credentials that cannot be auto-generated
 - Bull Board is unauthenticated on free tier (add middleware for production)
 - Render Postgres free tier has storage limits
