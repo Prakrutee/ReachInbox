@@ -3,9 +3,13 @@
 AI-powered email outreach platform with smart scheduling, rate limiting, and real-time analytics.
 
 ## Live Demo
-- **Frontend**: https://reachinbox-frontend.onrender.com (replace with your URL)
-- **Backend API**: https://reachinbox-api.onrender.com (replace with your URL)
-- **Bull Board**: https://reachinbox-api.onrender.com/admin/queues
+- **Frontend**: https://prakrutee.github.io/ReachInbox/
+- **Backend API**: Not deployed yet; configure `VITE_API_BASE_URL` when the API is hosted.
+- **Bull Board**: Available at `/admin/queues` on the deployed API host.
+
+The frontend is deployed automatically to GitHub Pages whenever changes are pushed to
+the `main` branch. The GitHub Actions workflow is defined in
+`.github/workflows/deploy-pages.yml`.
 
 ## Architecture
 
@@ -81,6 +85,9 @@ npm run dev             # Vite dev server on :5173
    - `ETHEREAL_USER`, `ETHEREAL_PASSWORD`
    - `ELASTICSEARCH_URL` (optional)
 6. Deploy!
+
+The Render Blueprint requires a verified Render account and an accepted payment
+method, even when using free service plans.
 
 ## Environment Variables
 
