@@ -1,7 +1,9 @@
 import axios from "axios";
 import type { Email, ScheduleResult, SlackStatus, User } from "../types";
 
-const BASE = import.meta.env.VITE_API_BASE_URL || "";
+const BASE =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? "https://nam-mentor-robust-title.trycloudflare.com" : "");
 
 const api = axios.create({
   baseURL: BASE,
