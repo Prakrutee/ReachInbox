@@ -2,14 +2,15 @@
 
 AI-powered email outreach platform with smart scheduling, rate limiting, and real-time analytics.
 
-## Live Demo
-- **Frontend**: https://prakrutee.github.io/ReachInbox/
-- **Backend API**: Not deployed yet; configure `VITE_API_BASE_URL` when the API is hosted.
-- **Bull Board**: Available at `/admin/queues` on the deployed API host.
+## Deployment Status
+- **Repository**: https://github.com/Prakrutee/ReachInbox (private)
+- **Local API**: http://localhost:10001
+- **Local Bull Board**: http://localhost:10001/admin/queues
+- **Temporary API tunnel**: https://nam-mentor-robust-title.trycloudflare.com
 
-The frontend is deployed automatically to GitHub Pages whenever changes are pushed to
-the `main` branch. The GitHub Actions workflow is defined in
-`.github/workflows/deploy-pages.yml`.
+GitHub Pages was used for the frontend build, but public Pages hosting is not
+available for this private repository on the current GitHub plan. The temporary
+API tunnel works only while Docker Desktop and the tunnel process are running.
 
 ## Architecture
 
@@ -47,8 +48,28 @@ All email scheduling is implemented using BullMQ delayed jobs:
 
 ### Prerequisites
 - Node.js 18+
-- Redis (local or remote)
-- Postgres (local or remote)
+- Docker Desktop (recommended)
+- Redis and PostgreSQL (provided by Docker Compose)
+
+### Run the complete backend with Docker
+From the repository root:
+
+```bash
+docker compose up -d --build
+```
+
+This starts PostgreSQL, Redis, the Express API on `http://localhost:10001`,
+and the BullMQ worker. Check the API with:
+
+```bash
+curl http://localhost:10001/api/health
+```
+
+Stop the stack with:
+
+```bash
+docker compose down
+```
 
 ### Backend
 ```bash
@@ -86,8 +107,9 @@ npm run dev             # Vite dev server on :5173
    - `ELASTICSEARCH_URL` (optional)
 6. Deploy!
 
-The Render Blueprint requires a verified Render account and an accepted payment
-method, even when using free service plans.
+The Render Blueprint is included in `render.yaml`, but Render currently requires
+a verified account and an accepted payment method, even when using free service
+plans.
 
 ## Environment Variables
 
@@ -116,14 +138,16 @@ method, even when using free service plans.
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create OAuth 2.0 credentials
-3. Add authorized redirect URI: `https://reachinbox-api.onrender.com/auth/google/callback`
-4. Set `GOOGLE_CALLBACK_URL=https://reachinbox-api.onrender.com/auth/google/callback`
+3. Add an authorized redirect URI matching your deployed API, for example:
+   `https://your-api-host.example.com/auth/google/callback`
+4. Set `GOOGLE_CALLBACK_URL` to the same URL.
 
 ## Slack OAuth Setup
 
 1. Create a [Slack App](https://api.slack.com/apps)
 2. Enable incoming webhooks and OAuth
-3. Add redirect URL: `https://reachinbox-api.onrender.com/auth/slack/callback`
+3. Add a redirect URL matching your deployed API, for example:
+   `https://your-api-host.example.com/auth/slack/callback`
 4. Set scopes: `incoming-webhook`, `chat:write`
 
 ## Ethereal Setup
