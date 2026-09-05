@@ -3,13 +3,13 @@
 AI-powered email outreach platform with smart scheduling, rate limiting, and real-time analytics.
 
 ## Deployment Status
-- **Repository**: https://github.com/Prakrutee/ReachInbox 
+- **Repository**: https://github.com/Prakrutee/ReachInbox (public)
+- **Frontend**: https://prakrutee.github.io/ReachInbox/
 - **Local API**: http://localhost:10001
 - **Local Bull Board**: http://localhost:10001/admin/queues
 - **Temporary API tunnel**: https://nam-mentor-robust-title.trycloudflare.com
 
-GitHub Pages was used for the frontend build, but public Pages hosting is not
-available for this private repository on the current GitHub plan. The temporary
+The frontend is deployed through GitHub Actions and GitHub Pages. The temporary
 API tunnel works only while Docker Desktop and the tunnel process are running.
 
 ## Architecture
